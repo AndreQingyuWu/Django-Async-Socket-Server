@@ -439,7 +439,7 @@ def realtimemonitor(request):
                     #print(data)
                     curtime = data.time
                     print(data.ST)
-                    title = ['Uab', 'Ubc', 'Uca', 'Iab' ,'Ibc','Iac' ,"Ta", "Tb", "Tc", "Pa", "Pb", "Pc", "Pt", "Qa", "Qb", "Qc", "Qt", "Sa",
+                    title = ['Uab', 'Ubc', 'Uca', 'Iab' ,'Ibc','Ica' ,"Ta", "Tb", "Tc", "Pa", "Pb", "Pc", "Pt", "Qa", "Qb", "Qc", "Qt", "Sa",
                              "Sb", "Sc", "St", "PFa", "PFb", "PFc", "PFt", "FREQ", "PAE", "PRE", "NAE", "NRE"]
                     print(data.ST)
                     value = [data.U1, data.U2, data.U3, data.I1, data.I2, data.I3, data.TA, data.TB, data.TC, data.PA, data.PB, data.PC, data.PT,
