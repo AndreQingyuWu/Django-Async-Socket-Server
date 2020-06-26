@@ -141,7 +141,7 @@ def calc_crc(string):
                 crc ^= 0xA001
             else:
                 crc >>= 1
-    return hex(((crc & 0xff) << 8) + (crc >> 8))
+    return "{:04X}".format(((crc & 0xff) << 8) + (crc >> 8))
 
 def handle_incoming(client, address):
     """
@@ -172,80 +172,80 @@ def handle_readable(client):
         set_json = eval(json_str)
         message = list()
         if set_json.get("inExMaiChongDianNeng") != None:
-            temp = '03100052000201' + hex(set_json["inExMaiChongDianNeng"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '03100052000201' + "{:04X}".format(set_json["inExMaiChongDianNeng"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
         if set_json.get("inExMaiChongNum") != None:
-            temp = '03060051' + hex(set_json["inExMaiChongNum"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '03060051' + "{:04X}".format(set_json["inExMaiChongNum"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
         if set_json.get("inFuZaiNum") != None:
-            temp = '03060099' + hex(set_json["inFuZaiNum"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '03060099' + "{:04X}".format(set_json["inFuZaiNum"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
         if set_json.get("inFuZaiValue") != None:
-            temp = '0306009a' + hex(set_json["inFuZaiValue"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '0306009a' + "{:04X}".format(set_json["inFuZaiValue"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
         if set_json.get("inGuoZaiShiJian") != None:
-            temp = '0306002e' + hex(set_json["inGuoZaiShiJian"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '0306002e' + "{:04X}".format(set_json["inGuoZaiShiJian"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
         if set_json.get("inGuoYaDianYa") != None:
-            temp = '0306002c' + hex(set_json["inGuoYaDianYa"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '0306002c' + "{:04X}".format(set_json["inGuoYaDianYa"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
         if set_json.get("inGuoZaiDianLiu") != None:
-            temp = '0306002a' + hex(set_json["inGuoZaiDianLiu"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '0306002a' + "{:04X}".format(set_json["inGuoZaiDianLiu"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
         if set_json.get("inLaHuTime") != None:
-            temp = '03060098' + hex(set_json["inLaHuTime"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '03060098' + "{:04X}".format(set_json["inLaHuTime"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
         if set_json.get("inLaHuValue") != None:
-            temp = '03060097' + hex(set_json["inLaHuValue"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '03060097' + "{:04X}".format(set_json["inLaHuValue"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
         if set_json.get("inLouDianDianLiu") != None:
-            temp = '0306002b' + hex(set_json["inLouDianDianLiu"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '0306002b' + "{:04X}".format(set_json["inLouDianDianLiu"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
         if set_json.get("inQianYaDianYa") != None:
-            temp = '0306002d' + hex(set_json["inQianYaDianYa"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '0306002d' + "{:04X}".format(set_json["inQianYaDianYa"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
         if set_json.get("inQueXiangTime") != None:
-            temp = '0306009b' + hex(set_json["inQueXiangTime"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '0306009b' + "{:04X}".format(set_json["inQueXiangTime"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
         if set_json.get("inShortDelayDuanLu") != None:
-            temp = '03060029' + hex(set_json["inShortDelayDuanLu"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '03060029' + "{:04X}".format(set_json["inShortDelayDuanLu"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
         if set_json.get("inShunShiDuanLu") != None:
-            temp = '03060028' + hex(set_json["inShunShiDuanLu"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '03060028' + "{:04X}".format(set_json["inShunShiDuanLu"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
         if set_json.get("inWenDuValue") != None:
-            temp = '0306002f' + hex(set_json["inWenDuValue"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '0306002f' + "{:04X}".format(set_json["inWenDuValue"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
         if set_json.get("inXinTiaoTime") != None:
-            temp = '03060037' + hex(set_json["inXinTiaoTime"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '03060037' + "{:04X}".format(set_json["inXinTiaoTime"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
         if set_json.get("inYuCunDianLiang") != None:
-            temp = '03100035000201' + hex(set_json["inYuCunDianLiang"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '03100035000201' + "{:04X}".format(set_json["inYuCunDianLiang"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
         if set_json.get("inZhaBiSuoTime") != None:
-            temp = '03060033' + hex(set_json["inZhaBiSuoTime"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '03060033' + "{:04X}".format(set_json["inZhaBiSuoTime"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
         if set_json.get("inZhaYanShiTime") != None:
-            temp = '03060032' + hex(set_json["inZhaYanShiTime"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
+            temp = '03060032' + "{:04X}".format(set_json["inZhaYanShiTime"])
+            temp = temp + calc_crc(temp)
             message.append(temp)
             """
         if set_json.get("msFenZhaTime") != None:
@@ -270,7 +270,8 @@ def handle_readable(client):
                 try:
                     if client_ip == ip:
                         for m in message:
-                            client.sendall(m)
+                            print(m, message.index(m))
+                            client.sendall(bytes.fromhex(m))
                 except Exception as e:
                     print(Exception, e)
                     server.clients.pop(client)
