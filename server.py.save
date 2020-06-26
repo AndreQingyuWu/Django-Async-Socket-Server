@@ -1,0 +1,93 @@
+import esockets
+import os
+import django
+import time
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'demo.settings')
+django.setup()
+from app import models
+
+def calc_crc(string):
+    data = bytearray.fromhex(string)
+    crc = 0xFFFF
+    for pos in data:
+        crc ^= pos
+        for i in range(8):
+            if ((crc & 1) != 0):
+                crc >>= 1
+                crc ^= 0xA001
+            else:
+                crc >>= 1
+    return hex(((crc & 0xff) << 8) + (crc >> 8))
+
+def on_off(S):
+    if S[-1] == 0: #分闸
+    
+    elif S[-1] == 1: #
+
+def handle_incoming(client, address):
+    """
+    Return True: The client is accepted and the server starts polling for messages
+    Return False: The server disconnects the client.
+    """
+
+    client.sendall(b'SERVER: Connection accepted!\n')
+    return True
+
+def handle_readable(client):
+    """
+    Return True: The client is re-registered to the selector object.
+    Return False: The server disconnects the client.
+    """
+
+    data = client.recv(1028)
+    str_ip = str(client).split(",")[-2].split("(")[1]
+    str_port = str(client).split(",")[-1].split(")")[0]
+    if data == b'':
+        return False
+    elif len(data) == 15 and data.decode().isdigit():
+        str_data = data.decode()
+        imei = models.Device.objects.filter(imei=str_data)
+        if imei.exists():
+            device = models.Device.objects.get(imei = str_data)
+            device.ip = str_ip
+            device.port = str_port
+            device.save()
+        else: #如果imei未注册
+            CRC = calc_crc("030300900001")
+            CRC = CRC[2:].upper()
+            get_version_code = ("030300900001" + CRC).encode()
+            client.sendall(get_version_code)
+            #version_code = client.recv(1028)
+            #str_version_code = version_code.decode()
+            str_version_code = "V1.4"
+            models.Device.objects.create(imei = str_data, ip = str_ip,port = str_port, device_version="V1.0.0", soft_version = str_version_code)
+    elif len(data) == 35 and data[0] == 3 and data[1] == 3:
+        ip = models.Device.objects.filter(ip=str_ip)
+        if ip.exists():
+            upload = models.Upload()
+            upload.imei = ip[0]
+            upload.Ileakage = data[3]*16*16 + data[4]
+            upload.IA = data[5]*16*16 + data[6]
+            upload.IB = data[7]*16*16 + data[8]
+            upload.IC = data[9]*16*16 + data[10]
+            upload.UA = data[11]*16*16 + data[12]
+            upload.UB = data[13]*16*16 + data[14]
+            upload.UC = data[15]*16*16 + data[16]
+            upload.TA = data[17]*16*16 + data[18]
+            upload.TB = data[19]*16*16 + data[20]
+            upload.TC = data[21]*16*16 + data[22]
+            on_off = bin(data[23]*16*16 + data[24])
+            error_code = bin(data[25]*16*16 + data[26])
+            upload.time = data[27].decode()+data[28].decode()+data[29].decode()+data[30].decode()+data[31].decode()+ data[32].decode()
+            upload.save()
+        else:
+            pass
+    ##还差故障上报的处理
+
+    #client.sendall(b'SERVER: ' + data)
+    return True
+
+server = esockets.SocketServer(port = 2333, host = "0.0.0.0", handle_incoming=handle_incoming,
+                               handle_readable=handle_readable)
+server.start()
+print('Server started on: {}:{}'.format(server.host, server.port))
