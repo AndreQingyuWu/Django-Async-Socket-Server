@@ -440,11 +440,11 @@ def realtimemonitor(request):
                     curtime = data.time
                     print(data.ST)
                     title = ['Uab', 'Ubc', 'Uca', 'Iab' ,'Ibc','Iac' ,"Ta", "Tb", "Tc", "Pa", "Pb", "Pc", "Pt", "Qa", "Qb", "Qc", "Qt", "Sa",
-                             "Sb", "Sc", "St", "PFa", "PFb", "PFc", "PFt", "FREQ"]
+                             "Sb", "Sc", "St", "PFa", "PFb", "PFc", "PFt", "FREQ", "PAE", "PRE", "NAE", "NRE"]
                     print(data.ST)
                     value = [data.U1, data.U2, data.U3, data.I1, data.I2, data.I3, data.TA, data.TB, data.TC, data.PA, data.PB, data.PC, data.PT,
                              data.QA, data.QB, data.QC, data.QT, data.SA, data.SB,
-                             data.SC, data.ST, data.PFA, data.PFB, data.PFB, data.PFC, data.PF, data.FREQ]
+                             data.SC, data.ST, data.PFA, data.PFB, data.PFB, data.PFC, data.PF, data.FREQ, data.WPosAc, data.WPosRe, data.WRevAc, data.WRevRe]
                     print(data.ST)
                     result = {
                         "time": curtime,
@@ -541,10 +541,12 @@ def energystatistics(request):
                         continue
                     onDayData = onDayDatas[len(onDayDatas) - 1]
                     result.append([onDayData.time, onDayData.WPosAc, priceCalculate(imei, p - 86400, p)])
+                """
                 for i in range(1, len(result)):
                     result[i][1] = result[i][1] - result[i - 1][1]
                 if len(result) >= 1:
                     result.pop(0)
+                """
                 print(result)
                 jsonData = {
                     "result": "success",
@@ -609,11 +611,12 @@ def dashboard(request):
                             continue
                         onDayData = onDayDatas[len(onDayDatas) - 1]
                         energy.append([onDayData.time, onDayData.WPosAc])
+                    """
                     for i in range(1, len(energy)):
                         energy[i][1] = energy[i][1] - energy[i-1][1]
                     if len(energy) >= 1:
                         energy.pop(0)
-
+                    """
                 result["energy"] = energy
                 result["aF"] = priceCalculate(imei, datas[0].time, cTime)
                 print(result["aF"])
