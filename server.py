@@ -247,6 +247,40 @@ def handle_readable(client):
             temp = '03060032' + "{:04X}".format(set_json["inZhaYanShiTime"])
             temp = temp + calc_crc(temp)
             message.append(temp)
+        #0059 58 5a
+        if set_json.get("msFenZhaTime") and set_json.get("msHeZhaTime"):
+            b0_b7_0059 = set_json["msFenZhaTime"][0]
+            b8_b11_0059 = set_json["msHeZhaTime"][2]
+            b12_b15_0059 = set_json["msHeZhaTime"][0]
+            temp = b12_b15_0059 * 4096 + b8_b11_0059 * 256 + b0_b7_0059
+            temp = "{:04X}".format(temp)
+            temp = '03060059' + temp
+            temp = temp + calc_crc(temp)
+            message.append(temp)
+            temp = '03060058' + "{:04X}".format(set_json["msHeZhaTime"][1])
+            temp = temp + calc_crc(temp)
+            message.append(temp)
+            temp = '0306005a' + "{:04X}".format(set_json["msFenZhaTime"][1] * 256 + set_json["msFenZhaTime"][2])
+            temp = temp + calc_crc(temp)
+            message.append(temp)
+        #0057
+        if set_json.get("ssDI1Fuc") and set_json.get("ssDI2Fuc"):
+            temp = '03060057' + "{:04X}".format(set_json["ssDI2Fuc"] * 256 + set_json["ssDI1Fuc"])
+            temp = temp + calc_crc(temp)
+            message.append(temp)
+        #007f
+        if set_json.get("swDingShiFenZha") and set_json.get("swDingShiHeZha") and set_json.get("swFuZaiJianCeAct") and set_json.get("swGuoYaProAct") \
+        and set_json.get("swGuoZaiProAct") and set_json.get("swLaHuProAct") and set_json.get("swLouDianProAct") and set_json.get("swQianYaProAct") \
+        and set_json.get("swQueXiangProAct") and set_json.get("swShortDelayProAct") and set_json.get("swShunShiProAct") and set_json.get("swWenDuProAct")\
+                and set_json.get("swYuFuFei"):
+            temp = set_json["swShunShiProAct"] + 2*set_json["swShortDelayProAct"] + 4*set_json["swGuoZaiProAct"] + 8*set_json["swLouDianProAct"] + \
+            16*set_json["swGuoYaProAct"] + 32*set_json["swQianYaProAct"] + 64*set_json["swWenDuProAct"] + 128*set_json["swLaHuProAct"] + \
+            1024*set_json["swDingShiHeZha"] + 2048*set_json["swDingShiFenZha"] + 4096*set_json["swYuFuFei"] + 8192*set_json["swFuZaiJianCeAct"] + \
+            16384*set_json["swQueXiangProAct"]
+            temp = '0306007f' + "{:04X}".format(temp)
+            temp = temp + calc_crc(temp)
+            message.append(temp)
+            #
             """
         if set_json.get("msFenZhaTime") != None:
             temp = '03060033' + hex(set_json["msFenZhaTime"]).split('x')[1]
