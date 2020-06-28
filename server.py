@@ -124,7 +124,7 @@ def error_code_trans(error_code_string):
 def time_stamp_trans(string):
     #tss1 = '2013-10-10 23:40:00'
     # 转为时间数组 '2000-00-00-00-00-00'
-    print(string)
+    #print(string)
     timeArray = time.strptime(string, "%Y-%m-%d-%H-%M-%S")
     # 转为时间戳
     timeStamp = int(time.mktime(timeArray))
@@ -150,7 +150,7 @@ def handle_incoming(client, address):
     """
 
     #client.sendall(b'SERVER: Connection accepted!\n')
-    print(client)
+    print(datetime.datetime.now(), "[func:handle_incoming]\t\t\t\tAccepted Client:", client)
     return True
 #b'\x03\x03\x1e\x00\x00\x00\x00\x00\x00\x00\x00\tP\x00\x00\x00\x00\x00\x1a\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x93\xde'
 def handle_readable(client):
@@ -159,16 +159,21 @@ def handle_readable(client):
     Return False: The server disconnects the client.
     """
     data = client.recv(1028)
-    str_ip = str(client).split(",")[-2].split("(")[1]
+    str_ip = (str(client).split(",")[-2].split("(")[1])
     str_port = str(client).split(",")[-1].split(")")[0]
-    print(data[0:13])
+    print(datetime.datetime.now(), "[func:handle_readable:Handle]\t\tReceived Client Struct:", client)
+    print(datetime.datetime.now(), "[func:handle_readable:Handle]\t\tReceived Client:", str_ip, str_port)
+    print(datetime.datetime.now(), "[func:handle_readable:Handle]\t\tClient Received:", data)
     if data == b'':
+        print(datetime.datetime.now(), "[func:handle_readable:None]")
         return False
     if data[0:12] == b'parameterset':
+        print(datetime.datetime.now(), "[func:handle_readable:Parameterset]Received Parameterset")
         data = data.decode("utf-8")
         imei = int(data.split('-')[0].split(':')[1])
         json_str = str(data.split('-')[1])
-        print(imei, json_str)
+        print(datetime.datetime.now(), "[func:handle_readable:Parameterset](imei):", imei)
+        print(datetime.datetime.now(), "[func:handle_readable:Parameterset](jsonstr):", json_str)
         set_json = eval(json_str)
         message = list()
         if set_json.get("inExMaiChongDianNeng") != None:
@@ -280,45 +285,38 @@ def handle_readable(client):
             temp = '0306007f' + "{:04X}".format(temp)
             temp = temp + calc_crc(temp)
             message.append(temp)
-            #
-            """
-        if set_json.get("msFenZhaTime") != None:
-            temp = '03060033' + hex(set_json["msFenZhaTime"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
-            message.append(temp)
-        if set_json.get("msHeZhaTime") != None:
-            temp = '03060033' + hex(set_json["msHeZhaTime"]).split('x')[1]
-            temp = temp + calc_crc(temp).split("x")[1]
-            message.append(temp)
-        """
+
+        print(datetime.datetime.now(), "[func:handle_readable:Parameterset](messages):", message)
         devices = models.Device.objects.filter(imei=imei)
         if devices.exists():
-            ip = str(eval(devices[0].ip))
-            port = int(devices[0].port)
+            ip = devices[0].ip
             temp = server.clients.copy()
+            print(datetime.datetime.now(), "[func:handle_readable:Parameterset](database ip):", ip)
             for client, _ in temp.items():
-                client_ip = eval(str(client).split("raddr=")[1].split('>')[0])[0]
-                client_port = eval(str(client).split("raddr=")[1].split('>')[0])[1]
-                client_ip = str(client_ip)
-                client_port = int(client_port)
+                print(datetime.datetime.now(), "[func:handle_readable:Parameterset](client to send):", client)
+                client_ip = str(client).split(",")[-2].split("(")[1]
+                print(datetime.datetime.now(), "[func:handle_readable:Parameterset](client ip):", client_ip)
                 try:
                     if client_ip == ip:
                         for m in message:
-                            print(m, message.index(m))
+                            print(datetime.datetime.now(), "[func:handle_readable:Parameterset](message):", m)
                             client.sendall(bytes.fromhex(m))
                 except Exception as e:
-                    print(Exception, e)
                     server.clients.pop(client)
-                    print("------------------------remove error peer---------------------------")
+                    print(datetime.datetime.now(), "[func:handle_readable:Parameterset](result):", "---- remove error peer ----")
+                    print(datetime.datetime.now(), "[func:handle_readable:Parameterset](exception):", Exception, e)
                 else:
-                    print("----------------------------success---------------------------------")
+                    print(datetime.datetime.now(), "[func:handle_readable:Parameterset](result):", "---- success ----")
                     pass
     if data[0:13] == b'remotecontrol':
+        print(datetime.datetime.now(), "[func:handle_readable:Remotecontrol]Received Remotecontrol")
         data = data.decode("utf-8")
         contrl_data = data.split(':')[1]
         imei = int(contrl_data.split('-')[0])
         index = int(contrl_data.split('-')[1])
         value = str(contrl_data.split('-')[2])
+        print(datetime.datetime.now(), "[func:handle_readable:Remotecontrol](imei):", imei)
+        print(datetime.datetime.now(), "[func:handle_readable:Remotecontrol](index, value):", index, value)
         if index == 0:
             if value == 'true':
                 #03 05 00 00 01 88 CD DE
@@ -337,29 +335,29 @@ def handle_readable(client):
                 message = ASK_FOR_CHECK
             else:
                 message = ASK_FOR_UNCHECK
-
+        print(datetime.datetime.now(), "[func:handle_readable:Remotecontrol](message):", message)
         devices = models.Device.objects.filter(imei=imei)
         if devices.exists():
-            ip = str(eval(devices[0].ip))
-            port = int(devices[0].port)
+            ip = devices[0].ip
             temp = server.clients.copy()
+            print(datetime.datetime.now(), "[func:handle_readable:Remotecontrol](database ip):", ip)
             for client, _ in temp.items():
-                client_ip = eval(str(client).split("raddr=")[1].split('>')[0])[0]
-                client_port = eval(str(client).split("raddr=")[1].split('>')[0])[1]
-                client_ip = str(client_ip)
-                client_port = int(client_port)
+                print(datetime.datetime.now(), "[func:handle_readable:Remotecontrol](Client send to):", client)
+                client_ip = str(client).split(",")[-2].split("(")[1]
+                print(datetime.datetime.now(), "[func:handle_readable:Remotecontrol](client ip):", client_ip)
                 try:
                     if client_ip == ip:
-                        print(message)
+                        print(datetime.datetime.now(), "[func:handle_readable:Remotecontrol](send to):", message)
                         client.sendall(message)
                 except Exception as e:
-                    print(Exception, e)
                     server.clients.pop(client)
-                    print("------------------------remove error peer---------------------------")
+                    print(datetime.datetime.now(), "[func:handle_readable:Remotecontrol](result):", "---- remove error peer ----")
+                    print(datetime.datetime.now(), "[func:handle_readable:Remotecontrol](exception):", Exception, e)
                 else:
-                    print("----------------------------success---------------------------------")
+                    print(datetime.datetime.now(), "[func:handle_readable:Remotecontrol](result):", "---- success ----")
                     pass
     elif len(data) == 7: #获取版本号
+        print(datetime.datetime.now(), "[func:handle_readable:Version]Received Version")
         ip = models.Device.objects.filter(ip=str_ip)
         if ip.exists():
             soft_version = num_to_str(data[3])
@@ -367,7 +365,9 @@ def handle_readable(client):
             ip[0].soft_version = soft_version
             ip[0].save()
     elif len(data) == 15 and data.decode().isdigit():
+        print(datetime.datetime.now(), "[func:handle_readable:IMEI]Received IMEI")
         str_data = data.decode()
+        print(datetime.datetime.now(), "[func:handle_readable:IMEI](strdata):", str_data)
         imei = models.Device.objects.filter(imei=str_data)
         if imei.exists():
             device = models.Device.objects.get(imei = str_data)
@@ -383,6 +383,7 @@ def handle_readable(client):
             models.Device.objects.create(imei = str_data, ip = str_ip,port = str_port, device_version="V1.0.0", soft_version = str_version_code, time = time.time())
     #时间上报
     elif len(data) == 35 and data[0] == 3 and data[1] == 3:
+        print(datetime.datetime.now(), "[func:handle_readable:Upload]Received Upload")
         devices = models.Device.objects.filter(ip=str_ip)
         if devices.exists():
             if num_to_str(data[28]) == "00" or num_to_str(data[29]) == "00":
@@ -420,6 +421,7 @@ def handle_readable(client):
             upload.save()
     #故障
     elif len(data) == 33 and data[0] == 3 and data[1] == 3:
+        print(datetime.datetime.now(), "[func:handle_readable:Warning]Received Warning")
         ip = models.Device.objects.filter(ip=str_ip)
         if ip.exists():
             warning = models.Warning()
@@ -457,6 +459,7 @@ def handle_readable(client):
             warning.save()
     #2 + (n-1)*2 + 1
     elif len(data) == 195 and data[0] == 3 and data[1] == 3:
+        print(datetime.datetime.now(), "[func:handle_readable:Data]Received Data")
         ip = models.Device.objects.filter(ip=str_ip)
         if ip.exists():
             data_object = models.Data()
@@ -500,19 +503,18 @@ def handle_readable(client):
     return True
 
 def get_data():
-    print("----------------get data------------------")
-    print(server.clients)
+    print(datetime.datetime.now(), "[func:get_data]Ask for Data")
     temp = server.clients.copy()
     for client, _ in temp.items():
-        print(str(client))
         try:
+            print(datetime.datetime.now(), "[func:get_data](client):", client)
             client.sendall(ASK_FOR_ALL)
         except Exception as e:
-            print(Exception, e)
+            print(datetime.datetime.now(), "[func:get_data](result):", "----remove error peer----")
+            print(datetime.datetime.now(), "[func:get_data](exception):", Exception, e)
             server.clients.pop(client)
-            print("------------------------remove error peer---------------------------")
         else:
-            print("----------------------------success---------------------------------")
+            print(datetime.datetime.now(), "[func:get_data](result):", "----success----")
             pass
 
 
@@ -524,7 +526,7 @@ def run_threaded(job_func, server):
 server = esockets.SocketServer(port = 2333, host = "0.0.0.0", handle_incoming=handle_incoming,
                                handle_readable=handle_readable)
 server.start()
-print('Server started on: {}:{}'.format(server.host, server.port))
+print(datetime.datetime.now(),'[func:main:server](started on): {}:{}'.format(server.host, server.port))
 
 schedule.every(15).minutes.do(get_data)
 while True:
