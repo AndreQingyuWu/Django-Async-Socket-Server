@@ -168,6 +168,7 @@ def handle_readable(client):
         print(datetime.datetime.now(), "[func:handle_readable:None]")
         return False
     if data[0:12] == b'parameterset':
+        recv_client = client
         print(datetime.datetime.now(), "[func:handle_readable:Parameterset]Received Parameterset")
         data = data.decode("utf-8")
         imei = int(data.split('-')[0].split(':')[1])
@@ -292,6 +293,7 @@ def handle_readable(client):
             ip = devices[0].ip
             temp = server.clients.copy()
             print(datetime.datetime.now(), "[func:handle_readable:Parameterset](database ip):", ip)
+            send_flag = False
             for client, _ in temp.items():
                 print(datetime.datetime.now(), "[func:handle_readable:Parameterset](client to send):", client)
                 client_ip = str(client).split(",")[-2].split("(")[1]
@@ -301,14 +303,21 @@ def handle_readable(client):
                         for m in message:
                             print(datetime.datetime.now(), "[func:handle_readable:Parameterset](message):", m)
                             client.sendall(bytes.fromhex(m))
+                            send_flag = True
                 except Exception as e:
                     server.clients.pop(client)
                     print(datetime.datetime.now(), "[func:handle_readable:Parameterset](result):", "---- remove error peer ----")
                     print(datetime.datetime.now(), "[func:handle_readable:Parameterset](exception):", Exception, e)
                 else:
                     print(datetime.datetime.now(), "[func:handle_readable:Parameterset](result):", "---- success ----")
-                    pass
+                    break
+            if send_flag:
+                recv_client.sendall(b'1')
+            else:
+                recv_client.sendall(b'0')
+
     if data[0:13] == b'remotecontrol':
+        recv_client = client
         print(datetime.datetime.now(), "[func:handle_readable:Remotecontrol]Received Remotecontrol")
         data = data.decode("utf-8")
         contrl_data = data.split(':')[1]
@@ -320,7 +329,6 @@ def handle_readable(client):
         if index == 0:
             if value == 'true':
                 #03 05 00 00 01 88 CD DE
-
                 message = ASK_FOR_CLOSE
             else:
                 #03 05 00 00 02 99 0D 22
@@ -341,6 +349,7 @@ def handle_readable(client):
             ip = devices[0].ip
             temp = server.clients.copy()
             print(datetime.datetime.now(), "[func:handle_readable:Remotecontrol](database ip):", ip)
+            send_flag = False
             for client, _ in temp.items():
                 print(datetime.datetime.now(), "[func:handle_readable:Remotecontrol](Client send to):", client)
                 client_ip = str(client).split(",")[-2].split("(")[1]
@@ -349,13 +358,19 @@ def handle_readable(client):
                     if client_ip == ip:
                         print(datetime.datetime.now(), "[func:handle_readable:Remotecontrol](send to):", message)
                         client.sendall(message)
+                        send_flag = True
                 except Exception as e:
                     server.clients.pop(client)
                     print(datetime.datetime.now(), "[func:handle_readable:Remotecontrol](result):", "---- remove error peer ----")
                     print(datetime.datetime.now(), "[func:handle_readable:Remotecontrol](exception):", Exception, e)
                 else:
                     print(datetime.datetime.now(), "[func:handle_readable:Remotecontrol](result):", "---- success ----")
-                    pass
+                    break
+            if send_flag:
+                recv_client.sendall(b'1')
+            else:
+                recv_client.sendall(b'0')
+
     elif len(data) == 7: #获取版本号
         print(datetime.datetime.now(), "[func:handle_readable:Version]Received Version")
         ip = models.Device.objects.filter(ip=str_ip)

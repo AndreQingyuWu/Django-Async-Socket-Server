@@ -18,6 +18,8 @@ class Device (models.Model):
     port = models.CharField(max_length=8,null=True)
     #时间
     time = models.BigIntegerField(null=True)
+    #device type
+    deviceType = models.CharField(max_length= 5, null = True)
     #imei设备唯一标识
     imei = models.CharField(max_length=32)
     #设备地理位置

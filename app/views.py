@@ -14,6 +14,8 @@ def priceCalculate(imei, startTimeStamp, endTimeStamp):
     devices = Device.objects.filter(imei = imei)
     if devices.exists():
         device = devices[0]
+        if device.price == None:
+            return 0
         prices  = eval(device.price)
         prices.pop(0)
         timeStamp = list()
@@ -274,6 +276,7 @@ def adddevice(request):
                 longitude = postData.get('longitude')
                 imei = postData.get('imei')
                 deviceName = postData.get('deviceName')
+                deviceType = postData.get('devType')
                 devices = Device.objects.filter(imei=imei)
                 if devices.exists():
                     device = Device.objects.get(imei=imei)
@@ -281,9 +284,11 @@ def adddevice(request):
                     device.latitude = latitude
                     device.longitude = longitude
                     device.deviceName = deviceName
+                    device.deviceType = deviceType
                     device.save()
                 else:  # 如果imei未注册
                     Device.objects.create(imei=imei, deviceName=deviceName, location=location, latitude=latitude,
+                                          deviceType=deviceType,
                                           longitude=longitude, device_version="V1.0.0", soft_version="V1.4", time=time.time())
                 device = Device.objects.get(imei=imei)
                 user = User.objects.get(userPhone=postData.get("userUserId"))
@@ -313,12 +318,14 @@ def adddevice(request):
 
                     devBindTime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(device.time))
                     devSwVision = device.soft_version
+                    devType = device.deviceType
                     jsonData = {
                         "result": "success",
                         "devName": devName,
                         "devAddress": devAddress,
                         "devBindTime": devBindTime,
-                        "devSwVision": devSwVision
+                        "devSwVision": devSwVision,
+                        "devType": devType
                     }
                 else:
                     jsonData = {
@@ -389,13 +396,25 @@ def dynamicdata(request):
                 startTimeStamp = time_stamp_trans(str(date) + "-00-00-00")
                 endTimeStamp = time_stamp_trans(str(date) + "-23-59-59")
                 datas = Data.objects.filter(time__gte=startTimeStamp, time__lte=endTimeStamp, imei=devices[0])
-                header = ['Time', 'Uab', 'Ubc', 'Uca', 'Iab', 'Ibc', "Ta", "Pa", "Pb", "Pc", "Pt", "Qa", "Qb", "Qc", "Qt", "Sa", "Sb", "Sc", "St", "PFa", "PFb", "PFc", "PFt", "FREQ"]
+                if devices[0].deviceType == "2P":
+                    header = ['Time', 'U', 'I', "T", "P", "Q", "S", "PF", "FREQ"]
+                else:
+                    header = ['Time', 'Ua', 'Ub', 'Uc', 'Ia', 'Ib', 'Ic', "Ta", "Pa", "Pb", "Pc", "Pt", "Qa", "Qb", "Qc",
+                              "Qt", "Sa", "Sb", "Sc", "St", "PFa", "PFb", "PFc", "PFt", "FREQ"]
                 result = list()
                 result.append(header)
                 if datas.exists():
                     for data in datas:
-                        result.append([data.time, data.U1, data.U2, data.U3, data.I1, data.I2, data.TA, data.PA, data.PB, data.PC, data.PT, data.QA, data.QB, \
-                                        data.QC, data.QT, data.SA, data.SB, data.SC, data.ST, data.PFA, data.PFB, data.PFC, data.PF, data.FREQ])
+                        if devices[0].deviceType == "2P":
+                            result.append(
+                                [data.time, data.U1, data.I1, data.TA, data.PA,
+                                 data.QA, data.SA, data.PFA, data.FREQ])
+                        else:
+                            result.append(
+                                [data.time, data.U1, data.U2, data.U3, data.I1, data.I2, data.I3, data.TA, data.PA,
+                                 data.PB, data.PC, data.PT, data.QA, data.QB,
+                                 data.QC, data.QT, data.SA, data.SB, data.SC, data.ST, data.PFA, data.PFB, data.PFC,
+                                 data.PF, data.FREQ])
                     print("dynamic", result)
                     jsonData = {
                         "result": "success",
@@ -439,12 +458,24 @@ def realtimemonitor(request):
                     #print(data)
                     curtime = data.time
                     print(data.ST)
-                    title = ['Uab', 'Ubc', 'Uca', 'Iab' ,'Ibc','Ica' ,"Ta", "Tb", "Tc", "Pa", "Pb", "Pc", "Pt", "Qa", "Qb", "Qc", "Qt", "Sa",
-                             "Sb", "Sc", "St", "PFa", "PFb", "PFc", "PFt", "FREQ", "PAE", "PRE", "NAE", "NRE"]
+                    if devices[0].deviceType == "2P":
+                        title = ['U', 'I', "Ipeak", "T", "P", "Q", "S", "PF", "FREQ", "PAE", "PRE", "NAE", "NRE"]
+                    else:
+                        title = ['Ua', 'Ub', 'Uc', 'Ia', 'Ib', 'Ic', "Ipeak", "Ta", "Tb", "Tc", "Pa", "Pb", "Pc", "Pt",
+                                 "Qa", "Qb", "Qc", "Qt", "Sa",
+                                 "Sb", "Sc", "St", "PFa", "PFb", "PFc", "PFt", "FREQ", "PAE", "PRE", "NAE", "NRE"]
                     print(data.ST)
-                    value = [data.U1, data.U2, data.U3, data.I1, data.I2, data.I3, data.TA, data.TB, data.TC, data.PA, data.PB, data.PC, data.PT,
-                             data.QA, data.QB, data.QC, data.QT, data.SA, data.SB,
-                             data.SC, data.ST, data.PFA, data.PFB, data.PFB, data.PFC, data.PF, data.FREQ, data.WPosAc, data.WPosRe, data.WRevAc, data.WRevRe]
+                    if devices[0].deviceType == "2P":
+                        value = [data.U1, data.I1, data.Ileakage, data.TA, data.PA, data.QA, data.SA, data.PFA,
+                                 data.FREQ,
+                                 data.WPosAc, data.WPosRe, data.WRevAc, data.WRevRe]
+                    else:
+                        value = [data.U1, data.U2, data.U3, data.I1, data.I2, data.I3, data.TA, data.TB, data.TC,
+                                 data.Ileakage, data.PA, data.PB, data.PC, data.PT,
+                                 data.QA, data.QB, data.QC, data.QT, data.SA, data.SB,
+                                 data.SC, data.ST, data.PFA, data.PFB, data.PFC, data.PF, data.FREQ,
+                                 data.WPosAc, data.WPosRe, data.WRevAc, data.WRevRe]
+
                     print(data.ST)
                     result = {
                         "time": curtime,
@@ -611,6 +642,11 @@ def dashboard(request):
                             continue
                         onDayData = onDayDatas[len(onDayDatas) - 1]
                         energy.append([onDayData.time, onDayData.WPosAc])
+                    result["aF"] = priceCalculate(imei, datas[0].time, cTime)
+                else:
+                    energy.append([time.time(), 0])
+                    result["aQ"] = 0
+                    result["aF"] = 0
                     """
                     for i in range(1, len(energy)):
                         energy[i][1] = energy[i][1] - energy[i-1][1]
@@ -618,8 +654,6 @@ def dashboard(request):
                         energy.pop(0)
                     """
                 result["energy"] = energy
-                result["aF"] = priceCalculate(imei, datas[0].time, cTime)
-                print(result["aF"])
                 #result = str(result)
                 #print(energy)
                 jsonData = {
@@ -656,10 +690,17 @@ def remotecontrol(request):
                 fd.connect((ip, port))
                 message = "remotecontrol:"+str(imei)+"-"+str(index)+"-"+str(value)
                 fd.send(message.encode('utf-8'))
+                recv_data = fd.recv(1)
                 fd.close()
-                jsonData = {
-                    "result": "success",
-                }
+                print(recv_data)
+                if recv_data == b'1':
+                    jsonData = {
+                        "result": "success",
+                    }
+                else:
+                    jsonData = {
+                        "result": "fail",
+                    }
             else:
                 jsonData = {
                     "result": "fail"
@@ -692,10 +733,16 @@ def parameterset(request):
                 fd.connect((ip, port))
                 message = "parameterset:"+str(imei)+"-"+str(data)
                 fd.send(message.encode('utf-8'))
+                recv_data = fd.recv(1)
                 fd.close()
-                jsonData = {
-                    "result": "success",
-                }
+                if(recv_data == b'1'):
+                    jsonData = {
+                        "result": "success",
+                    }
+                else:
+                    jsonData = {
+                        "result": "fail",
+                    }
             else:
                 jsonData = {
                     "result": "fail"
