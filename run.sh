@@ -1,5 +1,7 @@
 #!/bin/bash
-#初次部署需初始化数据库以及admin账户：
+#初次部署先安装pip环境：
+#python3 -m pip install -r requirements.txt
+#并需初始化数据库以及admin账户：
 #python3 manage.py makemigrations app
 #python3 manage.py migrate
 #python3 manage.py createsuperuser
