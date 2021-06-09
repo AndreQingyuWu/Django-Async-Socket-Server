@@ -11,7 +11,7 @@ configobj==5.0.6
 constantly==15.1.0
 cryptography==2.1.4
 distro-info===0.18ubuntu0.18.04.1
-Django==3.1.2
+Django==3.1.10
 django-extensions==3.0.9
 django-werkzeug-debugger-runserver==0.3.1
 esockets==3.0.7
